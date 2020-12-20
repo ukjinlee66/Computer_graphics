@@ -1,7 +1,5 @@
 #include "mini.h"
 
-extern GLuint g_nCubeTex;
-
 bool gluInverMatrix(const GLfloat m[16], GLfloat out[16])
 {
 	GLfloat inv[16], det;
@@ -132,6 +130,7 @@ bool gluInverMatrix(const GLfloat m[16], GLfloat out[16])
 
 void draw_skybox(void)
 {
+	/*printf("draw skybox function call!\n");*/
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_CUBE_MAP);
@@ -197,13 +196,13 @@ void draw_skybox(void)
 
 void set_skybox(void)
 {
+	printf("set skybox function call!\n");
 	int height, width, channels;
 	/*glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glEnable(GL_TEXTURE_2D);*/
 
 	//glEnable(GL_DEPTH_TEST);
 	glGenTextures(1, &g_nCubeTex);
-	printf("read image data call before\n");
 	uchar* img0 = readImageData("skybox/posx.bmp", &width, &height, &channels);
 	uchar* img1 = readImageData("skybox/negx.bmp", &width, &height, &channels);
 	uchar* img2 = readImageData("skybox/posy.bmp", &width, &height, &channels);

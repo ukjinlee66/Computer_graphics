@@ -1,58 +1,85 @@
 #include "mini.h"
-extern int light_mode;
-extern double theta , phi;
-extern double radius;
-extern bool spin_state;
-extern int objID;
-extern bool assemblyMode;
-extern bool GameMode;
-extern GLfloat		cx, cy, cz;
-extern bool drawsignal;
+
 // 키보드는 텍스처를 바꾸는 키와 자동조립 상태로바꾸는 키 그리고 각도회전 줌아웃 포함.
 void keyboard(unsigned char key, int x, int y)
 {
 	if (key == 32)
 	{
-		if (!drawsignal)
+		if (assemblyMode)
 		{
-			printf("objID : %d\n", objID);
-			drawsignal = true;
+			if (!drawsignal)
+			{
+				printf("objID : %d\n", objID);
+				drawsignal = true;
+			}
+			else
+			{
+				dobj++;
+				printf("draw obj objID : %d\n",objID);
+				cx = cy = cz = 0;
+				colorindex = 0;
+				objidset[dobj] = objID; // 현재 오브젝트 아이디를 저장.
+				drawsignal = false;
+			}
 		}
-		else
+		else if (GameMode)
 		{
-			printf("fin obj\n");
-			drawsignal = false;
+			printf("shooting\n");
+			Mix_PlayChannel(-1, shooting, 0);
+			//idle함수 이용 총알을 발사.
+			if (!shsignal) shsignal = true;
 		}
-		
+	}
+	if (assemblyMode)
+	{ 
+		if (key == 'q') // +x
+			cx+=0.1;	
+		if (key == 'a') // -x
+			cx -= 0.1;
+		if (key == 'w') // +y
+			cy+=0.1;
+		if (key == 's') // -y
+			cy-=0.1;
+		if (key == 'e') // +z
+			cz+=0.1;
+		if (key == 'd') // -z
+			cz-=0.1;
+		if (key == 'c')
+		{
+			colorindex++;
+			if (colorindex == 7) colorindex = 0;
+			cr = c1[colorindex]; cg = c2[colorindex]; cb = c3[colorindex];
+		}
+		if (key == 'l') // shooting motion
+		{
+			shsignal2 = true;
+		}
+		if (key == 'z') // reload motion
+		{
+			shsignal3 = true;
+		}
 	}
 	if (key == 's')
 		spin_state = (spin_state == true ? false : true);
 	else if (key == '0')
 	{
-		printf("light position camera\n");
-
 		light_mode = 0;
 	}
 	else if (key == '1') {
-		printf("light position Sun\n");
 		light_mode = 1;
 	}
 	else if (key == '2') {
-		printf("light position Mercury\n");
 		light_mode = 2;
 	}
 	else if (key == '3') {
-		printf("light position Venus.\n");
 		light_mode = 3;
 	}
 	else if (key == '4')
 	{
-		printf("light position (3, 5, 7)\n");
 		light_mode = 4;
 	}
 	else if (key == '5')
 	{
-		printf("light position (20, 0, 0)\n");
 		light_mode = 5;
 	}
 	else if (key == 'i')
@@ -66,11 +93,19 @@ void keyboard(unsigned char key, int x, int y)
 		{
 			assemblyMode = false;
 			GameMode = true;
+			//default option
+			theta = 15;
+			phi = 25;
+			radius = 5;
 		}
 		else
 		{
 			GameMode = false;
 			assemblyMode = true;
+			//default option
+			theta = 45;
+			phi = 45;
+			radius = 10;
 		}
 	}
 
@@ -81,21 +116,6 @@ void glut_special_input(int key, int x, int y)
 	if (assemblyMode) //조립모드에서방향키
 	{
 		if (key == GLUT_KEY_UP) {
-			cy += 1;
-		}
-		else if (key == GLUT_KEY_DOWN) {
-			cy -= 1;
-		}
-		else if (key == GLUT_KEY_RIGHT) {
-			cx += 1;
-		}
-		else if (key == GLUT_KEY_LEFT) {
-			cx -= 1;
-		}
-	}
-	else if (GameMode) //게임모드 각도조절
-	{
-		if (key == GLUT_KEY_UP) {
 			phi -= 5;
 			if (phi < 0) phi = 355;
 		}
@@ -103,22 +123,48 @@ void glut_special_input(int key, int x, int y)
 			phi += 5;
 			if (phi >= 360) phi = 0;
 		}
-		else if (key == GLUT_KEY_LEFT) {
+		else if (key == GLUT_KEY_RIGHT) {
 			theta += 5;
 			if (theta >= 360) theta = 0;
 		}
-		else if (key == GLUT_KEY_RIGHT) {
+		else if (key == GLUT_KEY_LEFT) {
 			theta -= 5;
 			if (theta < 0) theta = 355;
 		}
 	}
-	printf("theta : %f phi : %f\n", theta, phi);
+	if (GameMode) //게임모드 각도조절
+	{
+		if (key == GLUT_KEY_UP) {
+			phi -= 5;
+			if (phi < 0) phi = 355;
+			R_angley += 0.1;
+			rx -=1;
+		}
+		else if (key == GLUT_KEY_DOWN) {
+			phi += 5;
+			if (phi >= 360) phi = 0;
+			R_angley -= 0.1;
+			rx += 1;
+		}
+		else if (key == GLUT_KEY_LEFT) {
+			theta += 5;
+			if (theta >= 360) theta = 0;
+			R_anglex += 0.1;
+			ry += 1;
+		}
+		else if (key == GLUT_KEY_RIGHT) {
+			theta -= 5;
+			if (theta < 0) theta = 355;
+			R_anglex -= 0.1;
+			ry -= 1;
+		}
+	}
 	glutPostRedisplay();
 }
 
 void mouse(int button, int state, int x, int y)
 {
-	y = g_nGLHeight - y;
+	/*y = g_nGLHeight - y;
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 		Picking(x, y);
@@ -127,18 +173,16 @@ void mouse(int button, int state, int x, int y)
 	}
 	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 		g_nSelect = 0;
-	glutPostRedisplay();
+	glutPostRedisplay();*/
 }
 
 void mouseWheel(int button, int dir, int x, int y)
 {
 	if (dir > 0) {
-		// printf("button(%d), dir(%d), x(%d), y(%d)\n", button, dir, x, y);
-		if (radius > 1) radius -= 0.5;
+		if (radius > 1) radius -= 0.3;
 	}
 	else {
-		// printf("button(%d), dir(%d), x(%d), y(%d)\n", button, dir, x, y);
-		if (radius < 100) radius += 0.5;
+		if (radius < 100) radius += 0.3;
 	}
 	glutPostRedisplay();
 }

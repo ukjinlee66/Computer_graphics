@@ -15,11 +15,30 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <GL/glext.h>
-
+#include <SDL.h>
+#include <SDL_mixer.h>
 using namespace std;
 
 # define PI 3.14159265359
+# define SOUND_MUSIC "music/BGM.wav"
+# define SOUND_SHOOTING "music/shooting.wav"
+# define SOUND_RELOAD "music/reload.wav"
+# define SOUND_BOOM "music/boom.wav"
 
+//music variable
+extern Mix_Music* gMusic;
+extern Mix_Chunk* shooting;
+extern Mix_Chunk* reload;
+extern Mix_Chunk* boom;
+//draw obj handle variable
+extern int dobj;
+extern double dobjx[9], dobjy[9], dobjz[9];
+extern int objidset[9];
+extern bool shsignal;
+extern float bu_dist;
+extern bool shsignal2;
+extern bool shsignal3;
+extern double loadangle;
 extern GLuint g_nCubeTex;
 extern double partial_angle;
 extern string current_Mode;
@@ -27,6 +46,11 @@ extern string ObjName[5];
 extern int objID;
 extern bool first;
 extern bool drawsignal;
+extern float rx, ry;
+extern bool prev[512][512][512];
+extern double	R_Positionx, R_Positiony, R_Positionz, R_anglex, R_angley, R_anglez;
+extern int dobj;
+extern double hangle, tangle;
 //충돌체크
 extern bool visit[512][512][512];
 //각 object 위치.
@@ -66,7 +90,6 @@ extern double radius;
 extern bool spin_state;
 
 
-//menu variable
 
 //texture variable
 extern GLuint		revolver_body_texture;
@@ -75,7 +98,10 @@ extern GLuint		revolver_hammer_texture;
 extern GLuint		revolver_bullet_texture;
 extern GLuint		revolver_magazine_texture;
 extern GLuint	R_texture;
-extern GLfloat		cx, cy, cz;
+extern GLfloat		cx, cy, cz, cr, cg, cb;
+extern GLfloat		c1[7], c2[7], c3[7];
+extern int colorindex;
+extern GLfloat dobjc[9][3];
 extern double target_angle;
 extern ObjParser* target;
 extern GLuint		target_texture;
@@ -100,6 +126,7 @@ void draw_obj_with_texture(ObjParser* objParser, GLuint tex);
 void draw_axis(void);
 void draw_text(void);
 void draw_aim(void);
+
 //keyboard function
 void glut_special_input(int key, int x, int y);
 void keyboard(unsigned char key, int x, int y);

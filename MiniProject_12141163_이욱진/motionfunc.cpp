@@ -1,10 +1,5 @@
 #pragma once
 #include "mini.h"
-extern int g_nSelect;
-extern int g_nGLWidth , g_nGLHeight;
-extern float g_pPosition[6];
-extern int g_nX, g_nY;
-extern double partial_angle;
 // z축 추가.
 
 void idle(void)
@@ -13,11 +8,63 @@ void idle(void)
 	{
 		partial_angle += 2.8;
 		if (partial_angle > 360) partial_angle -= 360;
+		if (shsignal2) //shoot motion
+		{
+			if (tangle <= 40 && !first)
+			{
+				tangle += 8.0; hangle -= 8.0;
+				if (tangle == 40) //방아쇠가 끝까지 당겨질 경우 소리출력.
+				{
+					Mix_PlayChannel(-1, shooting, 0);
+					first = true;
+				}
+			}
+			else if(tangle <= 40 && first)
+			{
+				tangle -= 8.0; hangle += 8.0;
+			}
+			if (tangle == 0 && hangle == 0)
+			{
+				tangle = hangle = 0;
+				first = false; shsignal2 = false;
+			}
+		}
+		if (shsignal3 && !first)
+		{
+			if (!first && loadangle > -55)
+			{
+				loadangle -= 5;
+				if (loadangle == -55)
+				{
+					first = true;
+					shsignal3 = false;
+					Mix_PlayChannel(-1, reload, 0);
+				}
+			}
+		}
+		if (first && loadangle <= 0 && shsignal3)
+		{
+			loadangle += 5;
+			if (loadangle == 0)
+			{
+				first = false; shsignal3 = false;
+				Mix_PlayChannel(-1, reload, 0);
+			}
+		}
 	}
 	else if (GameMode)
 	{
 		target_angle += 3.0;
 		if (partial_angle > 360) partial_angle -= 360;
+		if (shsignal)
+		{
+			if (bu_dist < 70) bu_dist += 5.0;
+			else
+			{
+				bu_dist = 0;
+				shsignal = false;
+			}
+		}
 	}
 	glutPostRedisplay();
 }
